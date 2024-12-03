@@ -1,10 +1,17 @@
-﻿namespace WebApp.Identity._1._0.ConfigIdentity
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+
+namespace WebApp.Identity._1._0.ConfigIdentity
 {
-    public class MyUser
+    public class MyUser : IdentityUser
     {
-        public required string Id { get; set; }
-        public string? UserName { get; set; }
-        public string? NormalizedUserName { get; set; }
-        public string? PasswordHash { get; set; }
+        public string? NameCompleted { get; set; }
+        public string OrganizationId{ get; set; }
+    }
+
+    public class Organization
+    {
+        public string?  Id { get; set; }
+        public string? Name { get; set; }
     }
 }
