@@ -1,11 +1,13 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace WebApp.Identity._1._0.Models
 {
-    public class RegisterModel
+    public class ResetPasswordModel
     {
-        public required string UserName { get; set; }
-        [DataType(DataType.Password)]
+        public string? Token { get; set; }
+        public string? Email { get; set; }
+
+        [DataType(DataType.Password)] 
         public string? Password { get; set; }
 
         [Compare("Password")]

@@ -6,6 +6,7 @@ namespace WebApp.Identity._1._0.ConfigIdentity
     public class MyUser : IdentityUser
     {
         public string? NameCompleted { get; set; }
+        public string Member { get; set; } = "Member";
         public string OrganizationId{ get; set; }
     }
 

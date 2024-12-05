@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApp.Identity._1._0.ConfigIdentity;
 
@@ -11,9 +12,11 @@ using WebApp.Identity._1._0.ConfigIdentity;
 namespace WebApp.Identity._1._0.Migrations
 {
     [DbContext(typeof(MyUserDbContext))]
-    partial class MyUserDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241204181810_addMember")]
+    partial class addMember
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
