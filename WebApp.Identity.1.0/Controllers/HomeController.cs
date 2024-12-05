@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Security.Claims;
@@ -62,13 +63,27 @@ namespace WebApp.Identity._1._0.Controllers
                             return View();
                         }
                         await _userManager.ResetAccessFailedCountAsync(user);
+
+                        if (await _userManager.GetTwoFactorEnabledAsync(user))
+                        {
+                            var validator = await _userManager.GetValidTwoFactorProvidersAsync(user);
+                            if (validator.Contains("Email"))
+                            {
+                                var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+                                System.IO.File.WriteAllText("resetLink.txt", token);
+                                await HttpContext.SignInAsync(IdentityConstants.TwoFactorUserIdScheme, Store2FA.ReturnClaims(user.Id, "Email"));
+
+                                return RedirectToAction("TwoFactor");
+                            }
+                        }
+
                         var principal = await _userClaimsPrincipalFactory.CreateAsync(user);
-                        await HttpContext.SignInAsync("Identity.Application", principal);
+                        await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal);
                         return RedirectToAction("About");
                     }
                     await _userManager.AccessFailedAsync(user);
 
-                    if(await _userManager.IsLockedOutAsync(user))
+                    if (await _userManager.IsLockedOutAsync(user))
                     {
                         // enviar email sobre troca de senha caso nao for quem tenha feito a tetntaiva
                     }
@@ -214,6 +229,47 @@ namespace WebApp.Identity._1._0.Controllers
                 {
                     ModelState.AddModelError("", "User not found");
                 }
+            }
+            return View();
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> TwoFactor()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> TwoFactor(TwoFactorModel model)
+        {
+            var result = await HttpContext.AuthenticateAsync(IdentityConstants.TwoFactorUserIdScheme);
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", "Token expired");
+                return View();
+            }
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByIdAsync(result.Principal.FindFirstValue("sub"));
+                if (user != null)
+                {
+                    var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, result.Principal.FindFirstValue("amr"), model.Token);
+                    if (isValid)
+                    {
+                        await HttpContext.SignOutAsync(IdentityConstants.TwoFactorUserIdScheme);
+                        var claimsPrincipal = await _userClaimsPrincipalFactory.CreateAsync(user);
+
+                        await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, claimsPrincipal);
+
+                        return RedirectToAction("About");
+                    }
+
+                    ModelState.AddModelError("", "Invalid Token");
+                    return View();
+
+                }
+                ModelState.AddModelError("", "Invalid Token");
             }
             return View();
         }
